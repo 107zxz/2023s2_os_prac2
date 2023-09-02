@@ -1,35 +1,127 @@
 from mmu import MMU
 
-
 class ClockMMU(MMU):
-    def __init__(self, frames):
-        # TODO: Constructor logic for EscMMU
-        pass
+
+    debug: bool
+
+    # Cache is an ordered list, because it needs to be cycled around by index
+    cache: list[int]
+    cache_size: int
+
+    # Clock hand
+    clock_hand: int
+    clock_bits: dict[int, bool]
+    
+    dirty_pages: set[int]
+
+    disk_reads: int
+    disk_writes: int
+    page_faults: int
+
+    def __init__(self, frames: int):
+        self.cache_size = frames
+        self.timestep = 0
+        self.cache = []
+        self.dirty_pages = set()
+        self.disk_reads = 0
+        self.disk_writes = 0
+        self.page_faults = 0
+        self.clock_hand = 0
+        self.clock_bits = {}
 
     def set_debug(self):
-        # TODO: Implement the method to set debug mode
+        self.debug = True
         pass
 
     def reset_debug(self):
-        # TODO: Implement the method to reset debug mode
+        self.debug = False
         pass
 
-    def read_memory(self, page_number):
-        # TODO: Implement the method to read memory
-        pass
+    def cache_page(self, page_number: int):
+
+        if self.debug:
+            print("Caching page {}".format(page_number))
+
+        # Detect page fault
+        if page_number not in self.cache:
+            
+            # Page faults require a disk read
+            self.page_faults += 1
+            self.disk_reads += 1
+
+            if self.debug:
+                print("Page Fault Disk reads: {}".format(self.disk_reads))
+            
+            # Is cache full?
+            if len(self.cache) == self.cache_size:
+                
+                # It's time to spin the wheel of death!
+                while self.clock_bits[self.cache[self.clock_hand]] == True:
+
+                    next_clock_idx = (self.clock_hand + 1) % self.cache_size
+
+                    if self.debug:
+                        print("Clock ticks {}->{}. Next element {} with read {}".format(
+                            self.clock_hand, next_clock_idx,
+                            self.cache[next_clock_idx], self.clock_bits[self.cache[next_clock_idx]]
+                            ))
+                    self.clock_bits[self.cache[self.clock_hand]] = False
+                    self.clock_hand = next_clock_idx
+
+                biggest_loser = self.cache[self.clock_hand]
+
+                # Dock of shame, boat of losers etc etc...
+                self.cache.remove(biggest_loser)
+
+                if self.debug:
+                    print("Evicting page {}".format(biggest_loser))
+
+                # If we're evicting a dirty page, we're writing it to disk
+                if biggest_loser in self.dirty_pages:
+                    self.disk_writes += 1
+                    self.dirty_pages.remove(biggest_loser)
+
+                    if self.debug:
+                        print("Page dirty, disk writes: {}".format(self.disk_writes))
+            
+
+        # Add page to frames
+        if not page_number in self.cache:
+            self.cache.append(page_number)
+
+        self.clock_bits[page_number] = True
+
+        if self.debug:
+            print("Current cache:")
+            print(self.cache)
+
+    def read_memory(self, page_number: int):
+
+        if self.debug:
+            print("Reading page {}".format(page_number))
+
+        self.cache_page(page_number)
+
 
     def write_memory(self, page_number):
-        # TODO: Implement the method to write memory
-        pass
+
+        if self.debug:
+            print("Writing page {}".format(page_number))
+
+        self.dirty_pages.add(page_number)
+
+        if self.debug:
+            print("Dirty pages:")
+            print(self.dirty_pages)
+
+        self.cache_page(page_number)
 
     def get_total_disk_reads(self):
-        # TODO: Implement the method to get total disk reads
-        return -1
+        return self.disk_reads
 
     def get_total_disk_writes(self):
-        # TODO: Implement the method to get total disk writes
-        return -1
+        return self.disk_writes
 
     def get_total_page_faults(self):
-        # TODO: Implement the method to get total page faults
-        return -1
+        return self.page_faults
+
