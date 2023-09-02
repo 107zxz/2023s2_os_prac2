@@ -55,12 +55,7 @@ class RandMMU(MMU):
                 # Kick out random frame
                 random_frame_number = random.randint(0, self.cache_size)
 
-                cache_index = 0
-                for frame in self.cache:
-                    if random_frame_number == cache_index:
-                        random_frame = frame
-
-                    cache_index += 1
+                random_frame = self.cache[random_frame_number]
 
                 self.cache.remove(random_frame)
 
