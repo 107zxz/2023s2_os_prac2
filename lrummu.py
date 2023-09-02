@@ -72,8 +72,8 @@ class LruMMU(MMU):
         # Step forward in time
         self.timestep += 1
 
-        print("Reading page {}, {} total".format(page_number, self.disk_reads))
-        print(self.frames)
+        # print("Reading page {}, {} total".format(page_number, self.disk_reads))
+        # print(self.frames)
 
     def write_memory(self, page_number: int):
 
@@ -115,8 +115,8 @@ class LruMMU(MMU):
         # Step forward in time
         self.timestep += 1
 
-        print("Writing page {}".format(page_number))
-        print(self.frames)
+        # print("Writing page {}".format(page_number))
+        # print(self.frames)
 
     def get_total_disk_reads(self):
         return self.disk_reads
