@@ -1,64 +1,117 @@
 from mmu import MMU
 
+import random
+
 class RandMMU(MMU):
 
-    debug_mode = False;
+    debug: bool
 
-    # make a new function to handle debug prints?
-        # or do a if(debug_mode = True) type thing
+    cache: set[int]
+    cache_size: int
 
-    total_disk_reads = 0;
-    total_disk_writes = 0;
-    total_page_faults = 0;
+    random.seed(42)
+    
+    dirty_pages: set[int]
 
-    # any extra variables needed for specific replacement policy
-            # i.e for rand, might need some random seeding thing
+    disk_reads: int
+    disk_writes: int
+    page_faults: int
 
-
-    def __init__(self, frames):
-        # TODO: Constructor logic for RandMMU
-
-        # make storage thingy that can hold [frames] amount of page frames
-            # maybe vector
-        
-        pass
+    def __init__(self, frames: int):
+        self.cache_size = frames
+        self.timestep = 0
+        self.cache = set()
+        self.dirty_pages = set()
+        self.disk_reads = 0
+        self.disk_writes = 0
+        self.page_faults = 0
 
     def set_debug(self):
-        # TODO: Implement the method to set debug mode
-        
-        self.debug_mode = True;
-
+        self.debug = True
         pass
 
     def reset_debug(self):
-        # TODO: Implement the method to reset debug mode
-
-        self.debug_mode = False;
-
+        self.debug = False
         pass
 
-    def read_memory(self, page_number):
-        # TODO: Implement the method to read memory
+    def cache_page(self, page_number: int):
 
-        
+        if self.debug:
+            print("Caching page {}".format(page_number))
 
-        pass
+        # Detect page fault
+        if page_number not in self.cache:
+            
+            # Page faults require a disk read
+            self.page_faults += 1
+            self.disk_reads += 1
+
+            if self.debug:
+                print("Page Fault Disk reads: {}".format(self.disk_reads))
+            
+            # Is cache full?
+            if len(self.cache) == self.cache_size:
+                
+                # Kick out random frame
+                random_frame_number = random.randint(0, self.cache_size)
+
+                cache_index = 0
+                for frame in self.cache:
+                    if random_frame_number == cache_index:
+                        random_frame = frame
+
+                    cache_index += 1
+
+                self.cache.remove(random_frame)
+
+                if self.debug:
+                    print("Evicting page {}".format(random_frame))
+
+                # If we're evicting a dirty page, we're writing it to disk
+                if random_frame in self.dirty_pages:
+                    self.disk_writes += 1
+                    self.dirty_pages.remove(random_frame)
+
+                    if self.debug:
+                        print("Page dirty, disk writes: {}".format(self.disk_writes))
+            
+            
+
+
+        # Add page to frames
+        self.cache.add(page_number)
+
+        if self.debug:
+            print("Current cache:")
+            print(self.cache)
+
+    def read_memory(self, page_number: int):
+
+        if self.debug:
+            print("Reading page {}".format(page_number))
+
+        self.cache_page(page_number)
+
 
     def write_memory(self, page_number):
-        # TODO: Implement the method to write memory
 
+        if self.debug:
+            print("Writing page {}".format(page_number))
 
+        self.dirty_pages.add(page_number)
 
-        pass
+        if self.debug:
+            print("Dirty pages:")
+            print(self.dirty_pages)
+
+        self.cache_page(page_number)
 
     def get_total_disk_reads(self):
-        # TODO: Implement the method to get total disk reads
-        return self.total_disk_reads;
+        return self.disk_reads
 
     def get_total_disk_writes(self):
-        # TODO: Implement the method to get total disk writes
-        return self.total_disk_writes;
+        return self.disk_writes
 
     def get_total_page_faults(self):
-        # TODO: Implement the method to get total page faults
-        return self.total_page_faults;
+        return self.page_faults
+
