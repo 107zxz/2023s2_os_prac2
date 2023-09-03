@@ -54,7 +54,7 @@ class ClockMMU(MMU):
             
             # Is cache full?
             if len(self.cache) == self.cache_size:
-                
+
                 # It's time to spin the wheel of death!
                 while self.clock_bits[self.cache[self.clock_hand]] == True:
 
@@ -86,6 +86,9 @@ class ClockMMU(MMU):
             
                 # If a page was evicted we should replace it
                 self.cache[self.clock_hand] = page_number
+
+                # Push the clock hand an additional space
+                self.clock_hand = (self.clock_hand + 1) % self.cache_size
 
             else: # If cache ISN'T full
                 # Append page to frames
