@@ -53,9 +53,9 @@ class RandMMU(MMU):
             if len(self.cache) == self.cache_size:
                 
                 # Kick out random frame
-                random_frame_number = random.randint(0, self.cache_size)
+                # random_frame_number = random.randint(0, self.cache_size)
 
-                random_frame = self.cache[random_frame_number]
+                random_frame = random.choice(sorted(self.cache))
 
                 self.cache.remove(random_frame)
 
