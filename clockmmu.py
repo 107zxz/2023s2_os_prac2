@@ -40,7 +40,7 @@ class ClockMMU(MMU):
     def cache_page(self, page_number: int):
 
         if self.debug:
-            print("Caching page {}".format(page_number))
+            print("Checking page {} against cache".format(page_number))
 
         # Detect page fault
         if page_number not in self.cache:
@@ -50,7 +50,7 @@ class ClockMMU(MMU):
             self.disk_reads += 1
 
             if self.debug:
-                print("Page Fault Disk reads: {}".format(self.disk_reads))
+                print("Page Fault! Disk reads: {}".format(self.disk_reads))
             
             # Is cache full?
             if len(self.cache) == self.cache_size:
@@ -71,7 +71,7 @@ class ClockMMU(MMU):
                 biggest_loser = self.cache[self.clock_hand]
 
                 # Dock of shame, boat of losers etc etc...
-                self.cache.remove(biggest_loser)
+                del self.clock_bits[biggest_loser]
 
                 if self.debug:
                     print("Evicting page {}".format(biggest_loser))
@@ -84,10 +84,12 @@ class ClockMMU(MMU):
                     if self.debug:
                         print("Page dirty, disk writes: {}".format(self.disk_writes))
             
+                # If a page was evicted we should replace it
+                self.cache[self.clock_hand] = page_number
 
-        # Add page to frames
-        if not page_number in self.cache:
-            self.cache.append(page_number)
+            else: # If cache ISN'T full
+                # Append page to frames
+                self.cache.append(page_number)
 
         self.clock_bits[page_number] = True
 
@@ -108,13 +110,13 @@ class ClockMMU(MMU):
         if self.debug:
             print("Writing page {}".format(page_number))
 
+        self.cache_page(page_number)
+
         self.dirty_pages.add(page_number)
 
         if self.debug:
             print("Dirty pages:")
             print(self.dirty_pages)
-
-        self.cache_page(page_number)
 
     def get_total_disk_reads(self):
         return self.disk_reads
