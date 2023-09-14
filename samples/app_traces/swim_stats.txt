@@ -1,5 +1,6 @@
 writes: 67170
 reads: 932830
+unique addresses: 2543
 
 0x190a7: 474010
 0x190af: 39115

@@ -1,5 +1,6 @@
 writes: 107184
 reads: 892816
+unique addresses: 2852
 
 0x2fc7d: 103479
 0x26c1f: 94913

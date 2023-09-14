@@ -1,5 +1,6 @@
 writes: 160983
 reads: 839017
+unique addresses: 3890
 
 0x32929: 188750
 0x39daa: 132440

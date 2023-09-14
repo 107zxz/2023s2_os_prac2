@@ -27,6 +27,7 @@ def main():
     # track read and write counts
     read_count = 0
     write_count = 0
+    unique_addr_count = 0
 
     with open(input_file, 'r') as trace_file:
         for trace_line in trace_file:
@@ -49,6 +50,7 @@ def main():
             else:
                 # else add with count of 1
                 page_count[page_number] = 1
+                unique_addr_count += 1
 
     sorted_page_count = sorted(page_count.items(), key=lambda x: x[1], reverse=True)
 
@@ -57,6 +59,7 @@ def main():
         with open(output_file_path, 'w') as output_file:
             output_file.write(f"writes: {write_count}\n")
             output_file.write(f"reads: {read_count}\n") 
+            output_file.write(f"unique addresses: {unique_addr_count}\n") 
 
             output_file.write(f"\n")    
 
